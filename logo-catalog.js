@@ -65,35 +65,16 @@
   ],
   "nba": [
     { "name": "Atlanta Hawks", "domain": "atlantahawks.com" },
-    { "name": "Boston Celtics", "domain": "celtics.com" },
     { "name": "Brooklyn Nets", "domain": "brooklynnets.com" },
-    { "name": "Charlotte Hornets", "domain": "hornets.com" },
-    { "name": "Chicago Bulls", "domain": "bulls.com" },
-    { "name": "Cleveland Cavaliers", "domain": "cavs.com" },
     { "name": "Dallas Mavericks", "domain": "mavs.com" },
-    { "name": "Denver Nuggets", "domain": "nuggets.com" },
-    { "name": "Detroit Pistons", "domain": "pistons.com" },
     { "name": "Golden State Warriors", "domain": "warriors.com" },
     { "name": "Houston Rockets", "domain": "rockets.com" },
-    { "name": "Indiana Pacers", "domain": "pacers.com" },
-    { "name": "LA Clippers", "domain": "clippers.com" },
-    { "name": "Los Angeles Lakers", "domain": "lakers.com" },
-    { "name": "Memphis Grizzlies", "domain": "grizzlies.com" },
     { "name": "Miami Heat", "domain": "heat.com" },
     { "name": "Milwaukee Bucks", "domain": "bucks.com" },
-    { "name": "Minnesota Timberwolves", "domain": "timberwolves.com" },
-    { "name": "New Orleans Pelicans", "domain": "pelicans.com" },
-    { "name": "New York Knicks", "domain": "nyknicks.com" },
     { "name": "Oklahoma City Thunder", "domain": "okcthunder.com" },
-    { "name": "Orlando Magic", "domain": "orlandomagic.com" },
-    { "name": "Philadelphia 76ers", "domain": "sixers.com" },
     { "name": "Phoenix Suns", "domain": "suns.com" },
-    { "name": "Portland Trail Blazers", "domain": "trailblazers.com" },
-    { "name": "Sacramento Kings", "domain": "kings.com" },
-    { "name": "San Antonio Spurs", "domain": "spurs.com" },
     { "name": "Toronto Raptors", "domain": "raptors.com" },
     { "name": "Utah Jazz", "domain": "utahjazz.com" },
-    { "name": "Washington Wizards", "domain": "washingtonwizards.com" }
   ],
   "nfl": [
     { "name": "Arizona Cardinals", "domain": "azcardinals.com" },
@@ -227,7 +208,7 @@
     "sa20": [
       { "name": "MI Cape Town", "domain": "micapetown.co.za" },
       { "name": "Joburg Super Kings", "domain": "joburgsuperkings.com" },
-      { "name": "Pretoria Capitals", "domain": "pretoriacapitals.co.za" },
+      // { "name": "Pretoria Capitals", "domain": "pretoriacapitals.co.za" },
       { "name": "Paarl Royals", "domain": "paarlroyals.com" },
       // { "name": "Sunrisers Eastern Cape", "domain": "sunriserseasterncape.co.za" },
       { "name": "Durban's Super Giants", "domain": "durbanssupergiants.com" }
@@ -243,7 +224,7 @@
     "mlc": [
       { "name": "LA Knight Riders", "domain": "lakriders.us" },
       { "name": "MI New York", "domain": "minycricket.com" },
-      { "name": "San Francisco Unicorns", "domain": "sanfranciscounicorns.com" },
+      // { "name": "San Francisco Unicorns", "domain": "sanfranciscounicorns.com" },
       { "name": "Seattle Orcas", "domain": "seattleorcas.com" },
       { "name": "Texas Super Kings", "domain": "texassuperkings.com" },
       { "name": "Washington Freedom", "domain": "washingtonfreedom.com" }
