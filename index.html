@@ -1,0 +1,61 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#222222">
+  <meta name="description" content="Play Word Swipe Quiz: find hidden words in a colorful timed picture-clue word search.">
+  <title>Word Swipe Quiz — Cricket Challenge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="top-bar"><span>WORD SEARCH · PICTURE CLUES · GOOD LUCK</span><span>PLAY A QUICK ROUND <i class="live-dot"></i></span></div>
+  <header class="site-header" id="top">
+    <a class="site-logo" href="#top" aria-label="Word Swipe Quiz home"><span class="logo-symbol"><i></i><i></i><i></i></span><span class="logo-type">Word<span>Swipe</span><small>QUIZ CLUB</small></span></a>
+    <button class="mobile-menu" id="mobile-menu" aria-expanded="false" aria-label="Open navigation">☰</button>
+    <nav class="navigation" id="navigation" aria-label="Main navigation">
+      <a href="#game">Play Quiz</a><a href="#other-games">Other Games</a><a href="#top-scorer">Top Scorer</a><button class="search-button" aria-label="Search games">⌕</button><a class="login-button" href="#game">PLAY NOW</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="game-hero" id="game">
+      <div class="hero-shapes" aria-hidden="true"><span class="shape mint"></span><span class="shape yellow"></span><span class="shape pink"></span><span class="shape blue"></span><span class="shape yellow-spot"></span><span class="shape blue-ring"></span></div>
+      <div class="hero-content">
+        <div class="intro">
+          <p class="intro-label">THE PICTURE CLUE WORD SEARCH</p>
+          <h1 id="quiz-title">Word Swipe Quiz: Cricket</h1>
+          <p class="intro-copy" id="quiz-description">Your favorite cricket words are hiding in the grid. Find the picture clues, drag across the letters, and beat the clock. Words may run in any straight direction — keep your eye on the ball!</p>
+          <div class="intro-actions"><button id="show-scorer" class="outline-button">Show Top Scorer</button><button id="help-open" class="outline-button">HELP</button></div>
+        </div>
+
+        <div class="game-layout">
+          <aside class="clue-column" id="clues-left" aria-label="First three picture clues"></aside>
+          <div class="center-game">
+            <div class="board-shell"><div class="word-grid" id="word-grid" role="grid" aria-label="Word search letter grid"></div></div>
+            <div class="mobile-clues" id="clues-mobile" aria-label="Picture clues"></div>
+            <div class="stats-pill" aria-live="polite"><div><small>TIME LEFT</small><strong id="timer">05:00</strong></div><div><small>SCORE</small><strong id="score">0 / 6</strong></div><div><small>LEVEL</small><strong id="level">1 / 8</strong></div></div>
+          </div>
+          <aside class="clue-column" id="clues-right" aria-label="Last three picture clues"></aside>
+        </div>
+
+        <section class="scorer-card" id="top-scorer" aria-labelledby="scorer-heading"><h2 id="scorer-heading">This Week Top Scorer</h2><div class="table-wrap"><table><thead><tr><th>Name</th><th>Level</th><th>Time Taken</th></tr></thead><tbody id="leaderboard-body"><tr><td colspan="3">No data found.</td></tr></tbody></table></div></section>
+
+        <section class="other-games" id="other-games" aria-label="Other quiz games"><strong>Other Games:</strong><div class="game-options" id="game-options"></div></section>
+        <p class="logo-source-note">Live team and brand logos provided by the CompanyEnrich Logo API.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer"><div class="footer-columns"><section><h2>Play More</h2><a href="#game">Cricket Word Quiz</a><a href="#other-games">Famous Brands Quiz</a><a href="#other-games">Basketball Quiz</a><a href="#other-games">Football Quiz</a></section><section><h2>Word Swipe Quiz</h2><a href="#how-to-play">How to Play</a><a href="#top-scorer">Weekly Top Scorer</a><a href="#game">New Round</a><a href="#other-games">More Quiz Games</a></section><section><h2>Game Categories</h2><a href="#other-games">Sports Teams</a><a href="#other-games">Famous Brands</a><a href="#other-games">Logo Design</a><a href="#other-games">Picture Clues</a></section><section><h2>About This Game</h2><p>A colorful word search for curious fans. Find the clues, swipe the words, and play again.</p><a href="#how-to-play">Game Guide</a><a href="#top">Back to Top ↑</a></section></div><div class="footer-lower"><div class="social-links" aria-label="Social links"><a href="#" aria-label="Social link">f</a><a href="#" aria-label="Social link">𝕏</a><a href="#" aria-label="Social link">◎</a><a href="#" aria-label="Social link">▶</a></div><div class="legal-links"><a href="#">Terms &amp; Conditions</a><span>|</span><a href="#">Privacy Policy</a><span>|</span><a href="#">Sitemap</a></div></div><p class="copyright">© 2026 Word Swipe Quiz. Made for a little friendly competition.</p></footer>
+
+  <section class="how-to-play" id="how-to-play" hidden><p>Drag over a word in a straight line. Words run left-to-right or top-to-bottom. Find all six clues before time runs out.</p></section>
+  <dialog class="game-dialog" id="game-dialog" aria-labelledby="dialog-title"><button class="dialog-close" id="dialog-close" type="button" aria-label="Close dialog">×</button><p class="dialog-kicker" id="dialog-kicker">NICE WORK</p><h2 id="dialog-title">Round complete!</h2><p id="dialog-message">You found every hidden word.</p><label id="player-name-wrap" hidden>Your name<input id="player-name" maxlength="20" autocomplete="nickname" placeholder="Enter your name"></label><button class="dialog-action" id="dialog-action" type="button">Next Level →</button></dialog>
+  <script src="logo-catalog.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
+
