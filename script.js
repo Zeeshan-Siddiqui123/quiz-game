@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
   'use strict';
 
   const SIZE = 12;
@@ -30,7 +30,7 @@
   const playerNameWrap = document.getElementById('player-name-wrap');
   const playerName = document.getElementById('player-name');
   let categoryIndex = 0, roundIndex = 0, remaining = ROUND_SECONDS, totalElapsed = 0;
-  let usedLogoWords = new Map();
+  let usedLogos = new Map();
   let grid = [], placements = [], currentRoundItems = [], found = new Set(), selected = [], pointerStart = null, timerId = null, paused = false, dialogMode = '';
 
   const activeCategory = () => CATEGORIES[categoryIndex];
@@ -57,6 +57,7 @@
     "Brisbane Heat":"BRISBANE","Hobart Hurricanes":"HOBART","Melbourne Renegades":"RENEGADES",
     "Melbourne Stars":"MELBOURNE","Perth Scorchers":"SCORCHERS","Sydney Sixers":"SYDNEY",
     "Sydney Thunder":"THUNDER","The Hundred (All 8 Teams)":"HUNDRED",
+    "Washington Commanders":"COMMANDER","Galatasaray":"GALA","Fenerbahce":"FENER","Rawalpindi":"PINDI"
   };
 
   function answerCandidates(name) {
@@ -81,15 +82,7 @@
     const entries=index===0
       ? Object.values(catalog.cricket||{}).flat()
       : catalog[activeCategory().key]||[];
-    const usedWords=new Set();
-    const items=[];
-    for(const entry of shuffle(entries)){
-      const word=answerCandidates(entry.name).find(candidate=>!usedWords.has(candidate)&&candidate.length<=MAX_WORD_LENGTH);
-      if(!word||!entry.domain)continue;
-      usedWords.add(word);
-      items.push({word,name:entry.name,domain:entry.domain});
-    }
-    return items;
+    return entries.filter(e => e.name && e.domain && answerCandidates(e.name).length > 0);
   }
   function directionsForLevel(level) {
     const directions=[...STRAIGHT_DIRECTIONS];
@@ -99,27 +92,56 @@
   }
 
   function chooseLevelItems(pool, level) {
-    const used=usedLogoWords.get(categoryIndex)||new Set();
-    const available=pool.filter(item=>!used.has(item.word));
-    const minLength=[2,3,4,4,5,5,6,7][level-1];
-    const maxLength=[5,6,6,7,7,8,8,9][level-1];
-    const preferred=shuffle(available.filter(item=>item.word.length>=minLength&&item.word.length<=maxLength));
-    const fallback=shuffle(available.filter(item=>!preferred.includes(item)));
-    const chosen=[...preferred,...fallback].slice(0,6);
-    if(chosen.length<6){
-      const repeats=shuffle(pool.filter(item=>!chosen.includes(item))).slice(0,6-chosen.length);
-      chosen.push(...repeats);
+    const used = usedLogos.get(categoryIndex) || new Set();
+    const available = shuffle(pool.filter(item => !used.has(item.name)));
+    const repeats = shuffle(pool.filter(item => used.has(item.name)));
+    const orderedCandidates = [...available, ...repeats];
+
+    const minLength = [2,3,4,4,5,5,6,7][level-1];
+    const maxLength = [5,6,6,7,7,8,8,9][level-1];
+
+    const chosen = [];
+    const chosenWords = new Set();
+
+    function pickWord(item) {
+      const candidates = answerCandidates(item.name);
+      const preferred = candidates.find(c => c.length >= minLength && c.length <= maxLength && !chosenWords.has(c));
+      if (preferred) return preferred;
+      return candidates.find(c => !chosenWords.has(c));
     }
-    chosen.sort((a,b)=>a.word.length-b.word.length);
-    const nextUsed=new Set(used);
-    chosen.forEach(item=>nextUsed.add(item.word));
-    usedLogoWords.set(categoryIndex,nextUsed);
+
+    for (const item of orderedCandidates) {
+      if (chosen.length >= 6) break;
+      const candidates = answerCandidates(item.name);
+      const word = candidates.find(c => c.length >= minLength && c.length <= maxLength && !chosenWords.has(c));
+      if (word) {
+        chosen.push({ word, name: item.name, domain: item.domain });
+        chosenWords.add(word);
+      }
+    }
+
+    if (chosen.length < 6) {
+      for (const item of orderedCandidates) {
+        if (chosen.length >= 6) break;
+        if (chosen.some(c => c.name === item.name)) continue;
+        const word = pickWord(item);
+        if (word) {
+          chosen.push({ word, name: item.name, domain: item.domain });
+          chosenWords.add(word);
+        }
+      }
+    }
+
+    chosen.sort((a,b) => a.word.length - b.word.length);
+    const nextUsed = new Set(used);
+    chosen.forEach(item => nextUsed.add(item.name));
+    usedLogos.set(categoryIndex, nextUsed);
     return chosen;
   }
 
   function generateGrid(words) {
     const directions=directionsForLevel(roundIndex+1);
-    for (let generation = 0; generation < 30; generation++) {
+    for (let generation = 0; generation < 60; generation++) {
       const cells = Array.from({length:SIZE}, () => Array(SIZE).fill(''));
       const placedWords = [];
       for (const word of [...words].sort((a,b) => b[0].length - a[0].length)) {
@@ -137,7 +159,7 @@
           }
           if (!fits) continue;
           coords.forEach(([r,c], i) => cells[r][c]=word[0][i]);
-          placedWords.push({word:word[0], clue:word[1], coords}); placed=true;
+          placedWords.push({word:word[0], coords}); placed=true;
         }
         if (!placed) break;
       }
@@ -146,7 +168,17 @@
         return {cells,placedWords};
       }
     }
-    throw new Error('Grid generation failed.');
+    const cells = Array.from({length:SIZE}, () => Array(SIZE).fill(''));
+    const placedWords = [];
+    words.forEach((word, idx) => {
+      const w = word[0];
+      const r = Math.min(idx * 2, SIZE - 1), c = 0;
+      const coords = [];
+      for(let i=0; i<w.length; i++) { cells[r][c+i] = w[i]; coords.push([r, c+i]); }
+      placedWords.push({word:w, coords});
+    });
+    for(let r=0;r<SIZE;r++) for(let c=0;c<SIZE;c++) if(!cells[r][c]) cells[r][c]=String.fromCharCode(65+randomInt(26));
+    return {cells,placedWords};
   }
 
   function renderClues() {
@@ -195,7 +227,7 @@
   function setCategory(index) {
     if(CATEGORIES[index]?.key==='design_a_logo')return;
     categoryIndex=index;
-    usedLogoWords.set(index,new Set());
+    usedLogos.set(index,new Set());
     document.getElementById('quiz-title').textContent=`Word Swipe Quiz: ${activeCategory().name}`;
     document.getElementById('quiz-description').textContent=activeCategory().description;
     document.querySelectorAll('.game-option').forEach(button=>{const selected=Number(button.dataset.category)===index;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));});
@@ -226,9 +258,13 @@
   function cellAtPoint(x,y) { const node=document.elementFromPoint(x,y); return node?.classList.contains('cell')?node:null; }
   function getLine(start,end) {
     const dr=Number(end.dataset.row)-Number(start.dataset.row),dc=Number(end.dataset.col)-Number(start.dataset.col);
+    if(dr===0&&dc===0) return [start];
     const level=roundIndex+1;
-    if(!(dr===0||dc===0|| (level>=6&&Math.abs(dr)===Math.abs(dc)))) return null;
-    const count=Math.max(Math.abs(dr),Math.abs(dc)),sr=Math.sign(dr),sc=Math.sign(dc),cells=[];
+    const allowed=directionsForLevel(level);
+    const sr=Math.sign(dr),sc=Math.sign(dc);
+    if(!allowed.some(([r,c])=>r===sr&&c===sc)) return null;
+    if(!(dr===0||dc===0||Math.abs(dr)===Math.abs(dc))) return null;
+    const count=Math.max(Math.abs(dr),Math.abs(dc)),cells=[];
     for(let i=0;i<=count;i++) { const cell=gridEl.querySelector(`[data-row="${Number(start.dataset.row)+sr*i}"][data-col="${Number(start.dataset.col)+sc*i}"]`); if(cell)cells.push(cell); }
     return cells;
   }
@@ -236,7 +272,7 @@
   function finishSelection() {
     if(selected.length<2){showSelection([]);return;}
     const letters=selected.map(cell=>cell.textContent).join('');
-    const match=placements.find(p=>!found.has(p.word)&&(p.word===letters||p.word===letters.split('').reverse().join('')));
+    const match=placements.find(p=>!found.has(p.word)&&p.word===letters);
     if(!match){showSelection([]);return;}
     found.add(match.word); const wordIndex=placements.indexOf(match);
     selected.forEach(cell=>{cell.classList.remove('selected');cell.classList.add('found',COLOR_CLASSES[wordIndex%COLOR_CLASSES.length]);}); selected=[]; renderClues(); updateStats();
@@ -266,6 +302,7 @@
   function readScores() { try { const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return Array.isArray(data[weekKey()])?data[weekKey()]:[]; } catch(_){return [];} }
   function saveScore() {
     try { const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'),week=weekKey(),scores=Array.isArray(data[week])?data[week]:[];scores.push({name:(playerName.value.trim().slice(0,20)||'Player'),level:8,seconds:totalElapsed,date:Date.now()});scores.sort((a,b)=>b.level-a.level||a.seconds-b.seconds||a.date-b.date);data[week]=scores.slice(0,10);localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }catch(_){}
+    playerName.value='';
     renderLeaderboard();
   }
   function formatTime(seconds) { return `${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}`; }
@@ -279,10 +316,10 @@
     dialogMode='';if(dialog.open)dialog.close();
     if(mode==='help'){paused=false;startTimer();}
     else if(mode==='next')startRound(roundIndex+1);
-    else if(mode==='victory'){saveScore();usedLogoWords.set(categoryIndex,new Set());startRound(0,true);}
-    else if(mode==='timeup'){usedLogoWords.set(categoryIndex,new Set());startRound(0,true);}
+    else if(mode==='victory'){saveScore();usedLogos.set(categoryIndex,new Set());startRound(0,true);}
+    else if(mode==='timeup'){usedLogos.set(categoryIndex,new Set());startRound(0,true);}
   }
-  dialogAction.addEventListener('click',()=>{const mode=dialogMode;const asksName=mode==='victory';if(asksName)saveScore();dialogMode='';dialog.close();if(mode==='help'){paused=false;startTimer();}else if(mode==='next')startRound(roundIndex+1);else if(mode==='victory'||mode==='timeup'){usedLogoWords.set(categoryIndex,new Set());startRound(0,true);}});
+  dialogAction.addEventListener('click',()=>{const mode=dialogMode;const asksName=mode==='victory';if(asksName)saveScore();dialogMode='';dialog.close();if(mode==='help'){paused=false;startTimer();}else if(mode==='next')startRound(roundIndex+1);else if(mode==='victory'||mode==='timeup'){usedLogos.set(categoryIndex,new Set());startRound(0,true);}});
   document.getElementById('dialog-close').addEventListener('click',()=>closeDialog(dialogMode));
   dialog.addEventListener('cancel',event=>event.preventDefault());
   document.getElementById('help-open').addEventListener('click',help);

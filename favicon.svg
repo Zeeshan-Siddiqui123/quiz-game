@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1c2333"/>
+      <stop offset="100%" stop-color="#0f131c"/>
+    </linearGradient>
+    <linearGradient id="mintGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2af598"/>
+      <stop offset="100%" stop-color="#0be58c"/>
+    </linearGradient>
+    <linearGradient id="orangeGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ff9a44"/>
+      <stop offset="100%" stop-color="#ed8435"/>
+    </linearGradient>
+    <linearGradient id="blueGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4facfe"/>
+      <stop offset="100%" stop-color="#0ba7ea"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Badge -->
+  <rect width="32" height="32" rx="8" fill="url(#bg)"/>
+  <rect x="1.5" y="1.5" width="29" height="29" rx="7" fill="none" stroke="#333f56" stroke-width="1.2"/>
+  <path d="M23 2.5 H25 A5.5 5.5 0 0 1 30.5 8 V16" fill="none" stroke="#ed8435" stroke-width="1.8" stroke-linecap="round"/>
+
+  <!-- Three signature Word Swipe bars (short, tall, medium) -->
+  <rect x="7" y="16" width="4" height="9" rx="2" fill="url(#mintGrad)"/>
+  <rect x="14" y="9" width="4" height="16" rx="2" fill="url(#orangeGrad)"/>
+  <rect x="21" y="13" width="4" height="12" rx="2" fill="url(#blueGrad)"/>
+
+  <!-- Quiz Sparkle / Accent dot -->
+  <circle cx="9" cy="10" r="1.5" fill="#ffd15c"/>
+</svg>
+
