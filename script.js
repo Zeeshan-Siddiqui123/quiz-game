@@ -5,17 +5,32 @@
   const MAX_WORD_LENGTH = 9;
   const ROUND_SECONDS = 300;
   const STORAGE_KEY = 'word-swipe-quiz-scores-v2';
+  const CATEGORY_STORAGE_KEY = 'word-swipe-quiz-category-v1';
   const STRAIGHT_DIRECTIONS = [[0,1],[1,0]];
   const DIAGONAL_DIRECTIONS = [[1,1],[1,-1]];
   const CATEGORIES = [
-    {key:'cricket',name:'Cricket',button:'Cricket Logo Quiz',description:'Find team logos from PSL, international cricket, IPL, BBL, CPL, SA20, ILT20 and MLC.'},
-    {key:'famous_brands',name:'Famous Brands',button:'Famous brands logo quiz',description:'Match famous brand logos to their names.'},
-    {key:'mlb',name:'MLB',button:'MLB logo quiz',description:'Find the Major League Baseball team logos.'},
-    {key:'nba',name:'NBA',button:'NBA logo quiz',description:'Find the National Basketball Association team logos.'},
-    {key:'nfl',name:'NFL',button:'NFL logo quiz',description:'Find the National Football League team logos.'},
-    {key:'uefa_soccer',name:'UEFA Soccer',button:'UEFA Soccer Team logo quiz',description:'Find European football club logos.'},
-    {key:'design_a_logo',name:'Design a Logo',button:'Design a Logo',description:''}
+    {key:'cricket',name:'Cricket',button:'Cricket Logo Quiz',levels:8,description:'Find team logos from PSL, international cricket, IPL, BBL, CPL, SA20, ILT20 and MLC.'},
+    {key:'famous_brands',name:'Famous Brands',button:'Famous brands logo quiz',levels:6,description:'Match famous brand logos to their names.'},
+    {key:'mlb',name:'MLB',button:'MLB logo quiz',levels:3,description:'Find the Major League Baseball team logos.'},
+    {key:'nba',name:'NBA',button:'NBA logo quiz',levels:3,description:'Find the National Basketball Association team logos.'},
+    {key:'nfl',name:'NFL',button:'NFL logo quiz',levels:3,description:'Find the National Football League team logos.'},
+    {key:'uefa_soccer',name:'UEFA Soccer',button:'UEFA Soccer Team logo quiz',levels:4,description:'Find European football club logos.'},
+    {key:'video_games',name:'Video Games & Gaming Studios',button:'Video Games logo quiz',levels:3,description:'Find iconic video game studios, publishers, and console brands.'},
+    {key:'design_a_logo',name:'Design a Logo',button:'Design a Logo',levels:0,description:''}
   ];
+
+  function initialCategoryIndex() {
+    try {
+      const saved = localStorage.getItem(CATEGORY_STORAGE_KEY);
+      if (saved) {
+        const idx = CATEGORIES.findIndex(c => c.key === saved);
+        if (idx !== -1 && CATEGORIES[idx]?.key !== 'design_a_logo') return idx;
+      }
+    } catch (_) {}
+    return 0;
+  }
+
+  const categoryTotalLevels = () => activeCategory()?.levels || 8;
 
   const COLOR_CLASSES = ['found-0','found-1','found-2','found-3','found-4','found-5'];
   const gridEl = document.getElementById('word-grid');
@@ -29,7 +44,7 @@
   const dialogAction = document.getElementById('dialog-action');
   const playerNameWrap = document.getElementById('player-name-wrap');
   const playerName = document.getElementById('player-name');
-  let categoryIndex = 0, roundIndex = 0, remaining = ROUND_SECONDS, totalElapsed = 0;
+  let categoryIndex = initialCategoryIndex(), roundIndex = 0, remaining = ROUND_SECONDS, totalElapsed = 0;
   let usedLogos = new Map();
   let grid = [], placements = [], currentRoundItems = [], found = new Set(), selected = [], pointerStart = null, timerId = null, paused = false, dialogMode = '';
 
@@ -57,7 +72,11 @@
     "Brisbane Heat":"BRISBANE","Hobart Hurricanes":"HOBART","Melbourne Renegades":"RENEGADES",
     "Melbourne Stars":"MELBOURNE","Perth Scorchers":"SCORCHERS","Sydney Sixers":"SYDNEY",
     "Sydney Thunder":"THUNDER","The Hundred (All 8 Teams)":"HUNDRED",
-    "Washington Commanders":"COMMANDER","Galatasaray":"GALA","Fenerbahce":"FENER","Rawalpindi":"PINDI"
+    "Washington Commanders":"COMMANDER","Galatasaray":"GALA","Fenerbahce":"FENER","Rawalpindi":"PINDI",
+    "PlayStation":"PLAYSTN","Activision":"ACTIVISN","2K Games":"TWOK",
+    "Square Enix":"SQUARE","Bandai Namco":"NAMCO","Riot Games":"RIOT",
+    "Epic Games":"EPIC","Rockstar Games":"ROCKSTAR","Insomniac Games":"INSOMNIAC",
+    "Lucasfilm Games":"LUCASFILM","Naughty Dog":"NAUGHTY"
   };
 
   function answerCandidates(name) {
@@ -76,7 +95,7 @@
   }
 
   function logoPool(index) {
-    if(index===6)return [];
+    if(CATEGORIES[index]?.key==='design_a_logo')return [];
     const catalog=window.LOGO_CATALOG;
     if(!catalog)return [];
     const entries=index===0
@@ -85,20 +104,27 @@
     return entries.filter(e => e.name && e.domain && answerCandidates(e.name).length > 0);
   }
   function directionsForLevel(level) {
+    const total = categoryTotalLevels();
     const directions=[...STRAIGHT_DIRECTIONS];
-    if(level>=3) directions.push(...STRAIGHT_DIRECTIONS.map(([dr,dc])=>[-dr,-dc]));
-    if(level>=6) directions.push(...DIAGONAL_DIRECTIONS,...DIAGONAL_DIRECTIONS.map(([dr,dc])=>[-dr,-dc]));
+    const reverseThreshold = total <= 4 ? 2 : 3;
+    const diagonalThreshold = total <= 4 ? total : 6;
+    if(level>=reverseThreshold) directions.push(...STRAIGHT_DIRECTIONS.map(([dr,dc])=>[-dr,-dc]));
+    if(level>=diagonalThreshold) directions.push(...DIAGONAL_DIRECTIONS,...DIAGONAL_DIRECTIONS.map(([dr,dc])=>[-dr,-dc]));
     return directions;
   }
 
   function chooseLevelItems(pool, level) {
+    const total = categoryTotalLevels();
     const used = usedLogos.get(categoryIndex) || new Set();
     const available = shuffle(pool.filter(item => !used.has(item.name)));
     const repeats = shuffle(pool.filter(item => used.has(item.name)));
     const orderedCandidates = [...available, ...repeats];
 
-    const minLength = [2,3,4,4,5,5,6,7][level-1];
-    const maxLength = [5,6,6,7,7,8,8,9][level-1];
+    const step = Math.min(Math.floor(((level - 1) / Math.max(1, total - 1)) * 7), 7);
+    const minLengths = [2,3,4,4,5,5,6,7];
+    const maxLengths = [5,6,6,7,7,8,8,9];
+    const minLength = minLengths[step];
+    const maxLength = maxLengths[step];
 
     const chosen = [];
     const chosenWords = new Set();
@@ -216,7 +242,7 @@
 
   function updateStats() {
     timerEl.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
-    scoreEl.textContent=`${found.size} / 6`; levelEl.textContent=`${roundIndex+1} / 8`;
+    scoreEl.textContent=`${found.size} / 6`; levelEl.textContent=`${roundIndex+1} / ${categoryTotalLevels()}`;
   }
 
   function startTimer() {
@@ -224,21 +250,26 @@
     timerId=setInterval(()=>{ if(paused)return; remaining--; totalElapsed++; updateStats(); if(remaining<=0) timeUp(); },1000);
   }
 
-  function setCategory(index) {
+  function setCategory(index, shouldScroll = true) {
     if(CATEGORIES[index]?.key==='design_a_logo')return;
     categoryIndex=index;
+    try {
+      localStorage.setItem(CATEGORY_STORAGE_KEY, activeCategory().key);
+    } catch (_) {}
     usedLogos.set(index,new Set());
     document.getElementById('quiz-title').textContent=`Word Swipe Quiz: ${activeCategory().name}`;
     document.getElementById('quiz-description').textContent=activeCategory().description;
     document.querySelectorAll('.game-option').forEach(button=>{const selected=Number(button.dataset.category)===index;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));});
     startRound(0,true);
-    document.getElementById('game').scrollIntoView({behavior:'smooth',block:'start'});
+    if(shouldScroll){
+      document.getElementById('game').scrollIntoView({behavior:'smooth',block:'start'});
+    }
   }
 
   function renderOptions() {
     const host=document.getElementById('game-options'); host.replaceChildren();
     CATEGORIES.forEach((category,index)=>{
-      const button=document.createElement('button'); button.type='button'; button.className='game-option'; button.textContent=category.button; button.dataset.category=index; button.setAttribute('aria-pressed',String(index===categoryIndex));
+      const button=document.createElement('button'); button.type='button'; button.className='game-option'+(index===categoryIndex?' active':''); button.textContent=category.button; button.dataset.category=index; button.setAttribute('aria-pressed',String(index===categoryIndex));
       if(category.key==='design_a_logo'){button.setAttribute('aria-disabled','true');button.title='This option is not active yet.';}
       else button.addEventListener('click',()=>setCategory(index));
       host.append(button);
@@ -289,7 +320,8 @@
     if(dialog.open)dialog.close();dialog.showModal();if(askName)setTimeout(()=>playerName.focus(),60);
   }
   function showLevelComplete() {
-    if(roundIndex===7)showDialog('victory','PERFECT SCORE','You found them all!','You completed all eight levels. Add your name to this week’s top scorer board.','Save Score',true);
+    const total = categoryTotalLevels();
+    if(roundIndex === total - 1) showDialog('victory','PERFECT SCORE','You found them all!',`You completed all ${total} levels. Add your name to this week’s top scorer board.`,'Save Score',true);
     else showDialog('next','GREAT WORK','Level complete!',`All six words found! ${timerEl.textContent} remains on the clock.`,'Next Level →');
   }
   function timeUp() { clearInterval(timerId);paused=true;showDialog('timeup','TIME’S UP','The clock ran out.','Start from level one and see if you can beat your score.','Play Again'); }
@@ -301,7 +333,8 @@
   }
   function readScores() { try { const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');return Array.isArray(data[weekKey()])?data[weekKey()]:[]; } catch(_){return [];} }
   function saveScore() {
-    try { const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'),week=weekKey(),scores=Array.isArray(data[week])?data[week]:[];scores.push({name:(playerName.value.trim().slice(0,20)||'Player'),level:8,seconds:totalElapsed,date:Date.now()});scores.sort((a,b)=>b.level-a.level||a.seconds-b.seconds||a.date-b.date);data[week]=scores.slice(0,10);localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }catch(_){}
+    const total = categoryTotalLevels();
+    try { const data=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'),week=weekKey(),scores=Array.isArray(data[week])?data[week]:[];scores.push({name:(playerName.value.trim().slice(0,20)||'Player'),level:total,seconds:totalElapsed,date:Date.now()});scores.sort((a,b)=>b.level-a.level||a.seconds-b.seconds||a.date-b.date);data[week]=scores.slice(0,10);localStorage.setItem(STORAGE_KEY,JSON.stringify(data)); }catch(_){}
     playerName.value='';
     renderLeaderboard();
   }
@@ -328,5 +361,5 @@
   mobileMenu.addEventListener('click',()=>{const open=navigation.classList.toggle('open');mobileMenu.setAttribute('aria-expanded',String(open));mobileMenu.textContent=open?'×':'☰';});
   navigation.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>{navigation.classList.remove('open');mobileMenu.setAttribute('aria-expanded','false');mobileMenu.textContent='☰';}));
 
-  renderOptions();renderLeaderboard();startRound(0,true);
+  renderOptions();renderLeaderboard();setCategory(categoryIndex,false);
 })();

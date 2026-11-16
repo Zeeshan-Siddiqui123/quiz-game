@@ -1,4 +1,4 @@
-﻿window.LOGO_CATALOG = {
+window.LOGO_CATALOG = {
   "famous_brands": [
     { "name": "Apple", "domain": "apple.com" },
     { "name": "Microsoft", "domain": "microsoft.com" },
@@ -232,5 +232,40 @@
     "the_hundred": [
       { "name": "The Hundred (All 8 Teams)", "domain": "thehundred.com" }
     ]
-  }
+  },
+  "video_games": [
+    { "name": "Nintendo", "domain": "nintendo.com" },
+    { "name": "PlayStation", "domain": "playstation.com" },
+    { "name": "Xbox", "domain": "xbox.com" },
+    { "name": "Sega", "domain": "sega.com" },
+    { "name": "Capcom", "domain": "capcom.com" },
+    { "name": "Ubisoft", "domain": "ubisoft.com" },
+    { "name": "Valve", "domain": "valvesoftware.com" },
+    { "name": "Blizzard", "domain": "blizzard.com" },
+    { "name": "EA Sports", "domain": "ea.com" },
+    { "name": "Riot Games", "domain": "riotgames.com" },
+    { "name": "Epic Games", "domain": "epicgames.com" },
+    { "name": "Atari", "domain": "atari.com" },
+    { "name": "Rockstar Games", "domain": "rockstargames.com" },
+    { "name": "Square Enix", "domain": "square-enix.com" },
+    { "name": "Konami", "domain": "konami.com" },
+    { "name": "Bethesda", "domain": "bethesda.net" },
+    { "name": "Bandai Namco", "domain": "bandainamcoent.com" },
+    { "name": "Activision", "domain": "activision.com" },
+    { "name": "Bungie", "domain": "bungie.net" },
+    { "name": "BioWare", "domain": "bioware.com" },
+    { "name": "Roblox", "domain": "roblox.com" },
+    { "name": "Unity", "domain": "unity.com" },
+    { "name": "Twitch", "domain": "twitch.tv" },
+    { "name": "Discord", "domain": "discord.com" },
+    { "name": "CD Projekt", "domain": "cdprojekt.com" },
+    { "name": "Insomniac Games", "domain": "insomniac.games" },
+    { "name": "Naughty Dog", "domain": "naughtydog.com" },
+    { "name": "Mojang", "domain": "mojang.com" },
+    { "name": "Supercell", "domain": "supercell.com" },
+    { "name": "Zynga", "domain": "zynga.com" },
+    { "name": "2K Games", "domain": "2k.com" },
+    { "name": "Respawn", "domain": "respawn.com" },
+    { "name": "Lucasfilm Games", "domain": "lucasfilm.com" }
+  ]
 };
