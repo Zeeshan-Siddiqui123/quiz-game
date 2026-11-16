@@ -5,7 +5,8 @@
   const MAX_WORD_LENGTH = 9;
   const ROUND_SECONDS = 300;
   const STORAGE_KEY = 'word-swipe-quiz-scores-v2';
-  const DIRECTIONS = [[0,1],[1,0]];
+  const STRAIGHT_DIRECTIONS = [[0,1],[1,0]];
+  const DIAGONAL_DIRECTIONS = [[1,1],[1,-1]];
   const CATEGORIES = [
     {key:'cricket',name:'Cricket',button:'Cricket Logo Quiz',description:'Find team logos from PSL, international cricket, IPL, BBL, CPL, SA20, ILT20 and MLC.'},
     {key:'famous_brands',name:'Famous Brands',button:'Famous brands logo quiz',description:'Match famous brand logos to their names.'},
@@ -29,6 +30,7 @@
   const playerNameWrap = document.getElementById('player-name-wrap');
   const playerName = document.getElementById('player-name');
   let categoryIndex = 0, roundIndex = 0, remaining = ROUND_SECONDS, totalElapsed = 0;
+  let usedLogoWords = new Map();
   let grid = [], placements = [], currentRoundItems = [], found = new Set(), selected = [], pointerStart = null, timerId = null, paused = false, dialogMode = '';
 
   const activeCategory = () => CATEGORIES[categoryIndex];
@@ -89,14 +91,41 @@
     }
     return items;
   }
+  function directionsForLevel(level) {
+    const directions=[...STRAIGHT_DIRECTIONS];
+    if(level>=3) directions.push(...STRAIGHT_DIRECTIONS.map(([dr,dc])=>[-dr,-dc]));
+    if(level>=6) directions.push(...DIAGONAL_DIRECTIONS,...DIAGONAL_DIRECTIONS.map(([dr,dc])=>[-dr,-dc]));
+    return directions;
+  }
+
+  function chooseLevelItems(pool, level) {
+    const used=usedLogoWords.get(categoryIndex)||new Set();
+    const available=pool.filter(item=>!used.has(item.word));
+    const minLength=[2,3,4,4,5,5,6,7][level-1];
+    const maxLength=[5,6,6,7,7,8,8,9][level-1];
+    const preferred=shuffle(available.filter(item=>item.word.length>=minLength&&item.word.length<=maxLength));
+    const fallback=shuffle(available.filter(item=>!preferred.includes(item)));
+    const chosen=[...preferred,...fallback].slice(0,6);
+    if(chosen.length<6){
+      const repeats=shuffle(pool.filter(item=>!chosen.includes(item))).slice(0,6-chosen.length);
+      chosen.push(...repeats);
+    }
+    chosen.sort((a,b)=>a.word.length-b.word.length);
+    const nextUsed=new Set(used);
+    chosen.forEach(item=>nextUsed.add(item.word));
+    usedLogoWords.set(categoryIndex,nextUsed);
+    return chosen;
+  }
+
   function generateGrid(words) {
+    const directions=directionsForLevel(roundIndex+1);
     for (let generation = 0; generation < 30; generation++) {
       const cells = Array.from({length:SIZE}, () => Array(SIZE).fill(''));
       const placedWords = [];
       for (const word of [...words].sort((a,b) => b[0].length - a[0].length)) {
         let placed = false;
         for (let attempt = 0; attempt < 900 && !placed; attempt++) {
-          const [dr,dc] = DIRECTIONS[randomInt(DIRECTIONS.length)];
+          const [dr,dc] = directions[randomInt(directions.length)];
           const row = randomInt(SIZE), col = randomInt(SIZE);
           const endRow = row + dr * (word[0].length - 1), endCol = col + dc * (word[0].length - 1);
           if (endRow < 0 || endRow >= SIZE || endCol < 0 || endCol >= SIZE) continue;
@@ -164,8 +193,9 @@
   }
 
   function setCategory(index) {
-    if(index===6)return;
+    if(CATEGORIES[index]?.key==='design_a_logo')return;
     categoryIndex=index;
+    usedLogoWords.set(index,new Set());
     document.getElementById('quiz-title').textContent=`Word Swipe Quiz: ${activeCategory().name}`;
     document.getElementById('quiz-description').textContent=activeCategory().description;
     document.querySelectorAll('.game-option').forEach(button=>{const selected=Number(button.dataset.category)===index;button.classList.toggle('active',selected);button.setAttribute('aria-pressed',String(selected));});
@@ -176,9 +206,8 @@
   function renderOptions() {
     const host=document.getElementById('game-options'); host.replaceChildren();
     CATEGORIES.forEach((category,index)=>{
-      if(index===0)return;
       const button=document.createElement('button'); button.type='button'; button.className='game-option'; button.textContent=category.button; button.dataset.category=index; button.setAttribute('aria-pressed',String(index===categoryIndex));
-      if(index===6){button.setAttribute('aria-disabled','true');button.title='This option is not active yet.';}
+      if(category.key==='design_a_logo'){button.setAttribute('aria-disabled','true');button.title='This option is not active yet.';}
       else button.addEventListener('click',()=>setCategory(index));
       host.append(button);
     });
@@ -188,7 +217,7 @@
     clearInterval(timerId); roundIndex=index; remaining=ROUND_SECONDS; found=new Set(); selected=[]; pointerStart=null;
     if(resetElapsed) totalElapsed=0;
     const pool=logoPool(categoryIndex);
-    currentRoundItems=shuffle(pool).slice(0,6);
+    currentRoundItems=chooseLevelItems(pool,roundIndex+1);
     if(currentRoundItems.length<6){console.error('The selected quiz category needs at least six logo options.');return;}
     const generated=generateGrid(currentRoundItems.map(item=>[item.word])); grid=generated.cells; placements=generated.placedWords;
     renderGrid(); renderClues(); updateStats(); paused=false; startTimer();
@@ -197,7 +226,8 @@
   function cellAtPoint(x,y) { const node=document.elementFromPoint(x,y); return node?.classList.contains('cell')?node:null; }
   function getLine(start,end) {
     const dr=Number(end.dataset.row)-Number(start.dataset.row),dc=Number(end.dataset.col)-Number(start.dataset.col);
-    if(!(dr===0||dc===0)) return null;
+    const level=roundIndex+1;
+    if(!(dr===0||dc===0|| (level>=6&&Math.abs(dr)===Math.abs(dc)))) return null;
     const count=Math.max(Math.abs(dr),Math.abs(dc)),sr=Math.sign(dr),sc=Math.sign(dc),cells=[];
     for(let i=0;i<=count;i++) { const cell=gridEl.querySelector(`[data-row="${Number(start.dataset.row)+sr*i}"][data-col="${Number(start.dataset.col)+sc*i}"]`); if(cell)cells.push(cell); }
     return cells;
@@ -206,7 +236,7 @@
   function finishSelection() {
     if(selected.length<2){showSelection([]);return;}
     const letters=selected.map(cell=>cell.textContent).join('');
-    const match=placements.find(p=>!found.has(p.word)&&p.word===letters);
+    const match=placements.find(p=>!found.has(p.word)&&(p.word===letters||p.word===letters.split('').reverse().join('')));
     if(!match){showSelection([]);return;}
     found.add(match.word); const wordIndex=placements.indexOf(match);
     selected.forEach(cell=>{cell.classList.remove('selected');cell.classList.add('found',COLOR_CLASSES[wordIndex%COLOR_CLASSES.length]);}); selected=[]; renderClues(); updateStats();
@@ -227,7 +257,7 @@
     else showDialog('next','GREAT WORK','Level complete!',`All six words found! ${timerEl.textContent} remains on the clock.`,'Next Level →');
   }
   function timeUp() { clearInterval(timerId);paused=true;showDialog('timeup','TIME’S UP','The clock ran out.','Start from level one and see if you can beat your score.','Play Again'); }
-  function help() { clearInterval(timerId);showDialog('help','HOW TO PLAY','Find a word. Swipe it.','Words run left to right or top to bottom. Drag along a straight line to select a word. Find all six before the five-minute timer reaches zero.','Got it'); }
+  function help() { clearInterval(timerId);showDialog('help','HOW TO PLAY','Find a word. Swipe it.',`Swipe in any straight direction on early levels. From level 3, words can be placed in reverse directions. From level 6, diagonal words join in. Find all six before the five-minute timer reaches zero.`,'Got it'); }
 
   function weekKey(date=new Date()) {
     const d=new Date(Date.UTC(date.getFullYear(),date.getMonth(),date.getDate()));const day=d.getUTCDay()||7;d.setUTCDate(d.getUTCDate()+4-day);
@@ -249,10 +279,10 @@
     dialogMode='';if(dialog.open)dialog.close();
     if(mode==='help'){paused=false;startTimer();}
     else if(mode==='next')startRound(roundIndex+1);
-    else if(mode==='victory'){saveScore();startRound(0,true);}
-    else if(mode==='timeup')startRound(0,true);
+    else if(mode==='victory'){saveScore();usedLogoWords.set(categoryIndex,new Set());startRound(0,true);}
+    else if(mode==='timeup'){usedLogoWords.set(categoryIndex,new Set());startRound(0,true);}
   }
-  dialogAction.addEventListener('click',()=>{const mode=dialogMode;const asksName=mode==='victory';if(asksName)saveScore();dialogMode='';dialog.close();if(mode==='help'){paused=false;startTimer();}else if(mode==='next')startRound(roundIndex+1);else if(mode==='victory'||mode==='timeup')startRound(0,true);});
+  dialogAction.addEventListener('click',()=>{const mode=dialogMode;const asksName=mode==='victory';if(asksName)saveScore();dialogMode='';dialog.close();if(mode==='help'){paused=false;startTimer();}else if(mode==='next')startRound(roundIndex+1);else if(mode==='victory'||mode==='timeup'){usedLogoWords.set(categoryIndex,new Set());startRound(0,true);}});
   document.getElementById('dialog-close').addEventListener('click',()=>closeDialog(dialogMode));
   dialog.addEventListener('cancel',event=>event.preventDefault());
   document.getElementById('help-open').addEventListener('click',help);
