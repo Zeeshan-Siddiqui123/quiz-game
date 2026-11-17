@@ -206,12 +206,12 @@ window.LOGO_CATALOG = {
       // { "name": "Saint Lucia Kings", "domain": "saintluciakings.com" }
     ],
     "sa20": [
-      { "name": "MI Cape Town", "domain": "micapetown.co.za" },
+      // { "name": "MI Cape Town", "domain": "micapetown.co.za" },
       { "name": "Joburg Super Kings", "domain": "joburgsuperkings.com" },
       // { "name": "Pretoria Capitals", "domain": "pretoriacapitals.co.za" },
       { "name": "Paarl Royals", "domain": "paarlroyals.com" },
       // { "name": "Sunrisers Eastern Cape", "domain": "sunriserseasterncape.co.za" },
-      { "name": "Durban's Super Giants", "domain": "durbanssupergiants.com" }
+      // { "name": "Durban's Super Giants", "domain": "durbanssupergiants.com" }
     ],
     // // "ilt20": [
     // //   { "name": "Abu Dhabi Knight Riders", "domain": "adkriders.com" },
@@ -226,7 +226,7 @@ window.LOGO_CATALOG = {
       { "name": "MI New York", "domain": "minycricket.com" },
       // { "name": "San Francisco Unicorns", "domain": "sanfranciscounicorns.com" },
       { "name": "Seattle Orcas", "domain": "seattleorcas.com" },
-      { "name": "Texas Super Kings", "domain": "texassuperkings.com" },
+      // { "name": "Texas Super Kings", "domain": "texassuperkings.com" },
       { "name": "Washington Freedom", "domain": "washingtonfreedom.com" }
     ],
     "the_hundred": [
